@@ -1,0 +1,57 @@
+Service:
+  RegionId: ap-southeast-1
+  DeployType: ros
+  OperationMetadata:
+    StatusOperationConfigs:
+      - TemplateName: '单机版'
+        SupportOperations:
+          - Start
+          - Stop
+          - Restart
+    SupportBackup: true
+  DeployMetadata:
+    SupplierDeployMetadata:
+      ArtifactRelation:
+        EcsImage_hyperswitch:
+          ArtifactId: ${Artifact.EcsImage.ArtifactId}
+          ArtifactVersion: ${Artifact.EcsImage.ArtifactVersion}
+    TemplateConfigs:
+      - Name: ECS单机版
+        Url: 'ros_templates/template.yaml'
+        # 未选择部署地域则采用 []
+        AllowedRegions:
+          - cn-hangzhou
+          - cn-shanghai
+          - cn-beijing
+  ServiceType: private
+  ServiceInfo:
+    Locale: zh-CN
+    ShortDescription: demo
+    Image: 'resources/icons/service_logo.png'
+Artifact:
+  EcsImage:
+    ArtifactType: EcsImage
+    ArtifactName: EcsImage_hyperswitch
+    Description: hyperswitch EcsImage
+    SupportRegionIds:
+        - cn-hangzhou
+    CodeRepo:
+      Platform:
+      Owner:
+      RepoFullName: JJGGu/hyperswitch
+      Branch:
+    ArtifactBuildProperty:
+      RegionId: ap-southeast-1
+      SourceImageId: {{resolve:oos:aliyun/services/computenest/images/aliyun_3_2104_docker_26}}
+      CommandType: RunShellScript
+      CommandContent: |-
+        #!/bin/bash
+        cp -r /root/application/workspace/* /root/application/service_repo/
+        cd /root/application/service_repo
+        cp .env ./.env
+        docker-compose -f docker-compose.yml pull
+        docker-compose -f docker-compose.yml build
+        find . -mindepth 1 \
+            ! -path './.' \
+            ! -path '././*' \
+            -exec rm -rf {} +%
